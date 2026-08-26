@@ -41,12 +41,6 @@ type Store struct {
 	reports     map[string]*domain.DailyReport // key: boilerID|date
 	reportOrder []string
 
-	// 列表查询复用输出缓冲区（减少分配）。
-	efficiencyReadBuf  []*domain.EfficiencyRecord
-	combustionReadBuf  []*domain.CombustionStatus
-	blowdownReadBuf    []*domain.BlowdownRecord
-	reportReadBuf      []*domain.DailyReport
-
 	audit []*domain.AuditEntry
 
 	seq map[string]int64
@@ -81,10 +75,6 @@ func New(opts Options) (*Store, error) {
 		blowdownByBoiler:   make(map[string][]string),
 		reports:            make(map[string]*domain.DailyReport),
 		seq:                make(map[string]int64),
-		efficiencyReadBuf:  make([]*domain.EfficiencyRecord, 0, 16),
-		combustionReadBuf:  make([]*domain.CombustionStatus, 0, 16),
-		blowdownReadBuf:    make([]*domain.BlowdownRecord, 0, 16),
-		reportReadBuf:      make([]*domain.DailyReport, 0, 16),
 		now:                time.Now,
 	}
 	if opts.Now != nil {

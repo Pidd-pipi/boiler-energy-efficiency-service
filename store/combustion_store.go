@@ -48,8 +48,7 @@ func (s *Store) ListCombustionByBoiler(boilerID string, limit int) ([]*domain.Co
 	if limit > 0 && len(ids) > limit {
 		ids = ids[len(ids)-limit:]
 	}
-	out := s.combustionReadBuf[:0]
-	s.combustionReadBuf = out
+	out := make([]*domain.CombustionStatus, 0, len(ids))
 	for _, id := range ids {
 		out = append(out, cloneCombustion(s.combustion[id]))
 	}
@@ -64,8 +63,7 @@ func (s *Store) ListCombustion(limit int) ([]*domain.CombustionStatus, error) {
 	if limit > 0 && len(ids) > limit {
 		ids = ids[len(ids)-limit:]
 	}
-	out := s.combustionReadBuf[:0]
-	s.combustionReadBuf = out
+	out := make([]*domain.CombustionStatus, 0, len(ids))
 	for _, id := range ids {
 		out = append(out, cloneCombustion(s.combustion[id]))
 	}

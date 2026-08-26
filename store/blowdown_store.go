@@ -49,8 +49,7 @@ func (s *Store) ListBlowdownByBoiler(boilerID string, limit int) ([]*domain.Blow
 	if limit > 0 && len(ids) > limit {
 		ids = ids[len(ids)-limit:]
 	}
-	out := s.blowdownReadBuf[:0]
-	s.blowdownReadBuf = out
+	out := make([]*domain.BlowdownRecord, 0, len(ids))
 	for _, id := range ids {
 		out = append(out, cloneBlowdown(s.blowdown[id]))
 	}

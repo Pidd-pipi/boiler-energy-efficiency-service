@@ -49,8 +49,7 @@ func (s *Store) GetDailyReport(boilerID, date string) (*domain.DailyReport, erro
 func (s *Store) ListDailyReports(date string) ([]*domain.DailyReport, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	out := s.reportReadBuf[:0]
-	s.reportReadBuf = out
+	out := make([]*domain.DailyReport, 0, len(s.reports))
 	for key, r := range s.reports {
 		if date != "" && !keyHasDate(key, date) {
 			continue

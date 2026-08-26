@@ -48,8 +48,7 @@ func (s *Store) ListEfficiencyByBoiler(boilerID string, limit int) ([]*domain.Ef
 	if limit > 0 && len(ids) > limit {
 		ids = ids[len(ids)-limit:]
 	}
-	out := s.efficiencyReadBuf[:0]
-	s.efficiencyReadBuf = out
+	out := make([]*domain.EfficiencyRecord, 0, len(ids))
 	for _, id := range ids {
 		out = append(out, cloneEfficiency(s.efficiency[id]))
 	}
