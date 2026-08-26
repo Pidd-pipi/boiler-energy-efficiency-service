@@ -17,10 +17,6 @@ type ExecuteBlowdownInput struct {
 // ExecuteBlowdown 执行排污：登记记录、重置排污计时并返回最新计划。
 // 每次执行都写审计日志。
 func (s *Services) ExecuteBlowdown(traceID, boilerID string, in ExecuteBlowdownInput) (*domain.BlowdownRecord, *domain.BlowdownPlan, error) {
-	b, err := s.Store.GetBoiler(boilerID)
-	if err != nil {
-		return nil, nil, err
-	}
 	now := s.now()
 	duration := in.DurationMin
 	if duration <= 0 {
@@ -31,8 +27,13 @@ func (s *Services) ExecuteBlowdown(traceID, boilerID string, in ExecuteBlowdownI
 	if err := s.Store.CreateBlowdown(rec); err != nil {
 		return nil, nil, err
 	}
-	b.ResetBlowdownClock(now)
-	if err := s.Store.UpdateBoiler(b); err != nil {
+	// 排污计时重置是并发读改写，用 MutateBoiler 在单次写锁内完成，
+	// 避免与并发上报的状态更新互相覆盖。
+	b, err := s.Store.MutateBoiler(boilerID, func(cur *domain.Boiler) error {
+		cur.ResetBlowdownClock(now)
+		return nil
+	})
+	if err != nil {
 		return nil, nil, err
 	}
 	plan := s.PlanForBoiler(b)

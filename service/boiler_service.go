@@ -44,15 +44,14 @@ func (s *Services) ListBoilers() ([]*domain.Boiler, error) {
 // Transition 执行锅炉状态迁移（状态机规则见 domain.Boiler）。
 // 每次迁移都会写审计日志。
 func (s *Services) Transition(traceID, boilerID string, target domain.BoilerStatus, operator string) (*domain.Boiler, error) {
-	b, err := s.Store.GetBoiler(boilerID)
+	// 状态迁移是并发读改写，用 MutateBoiler 在单次写锁内完成，
+	// 避免并发迁移/上报互相覆盖彼此对锅炉的修改。
+	var from domain.BoilerStatus
+	b, err := s.Store.MutateBoiler(boilerID, func(cur *domain.Boiler) error {
+		from = cur.Status
+		return cur.TransitionTo(target, s.now())
+	})
 	if err != nil {
-		return nil, err
-	}
-	from := b.Status
-	if err := b.TransitionTo(target, s.now()); err != nil {
-		return nil, err
-	}
-	if err := s.Store.UpdateBoiler(b); err != nil {
 		return nil, err
 	}
 	detail := fmt.Sprintf("状态迁移 %s(%s) -> %s(%s)",

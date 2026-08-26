@@ -4,6 +4,15 @@ import "example.com/boiler-energy-efficiency-service/domain"
 
 // 本文件提供领域实体的浅拷贝，保证仓库 getter 返回副本而非共享指针，
 // 从而避免调用方在持锁外修改对象造成数据竞争。
+// 注意：Boiler 也是被多处读改写的实体，必须同等拷贝（见 boiler_store.go）。
+
+func cloneBoiler(b *domain.Boiler) *domain.Boiler {
+	if b == nil {
+		return nil
+	}
+	c := *b
+	return &c
+}
 
 func cloneRunData(r *domain.RunData) *domain.RunData {
 	if r == nil {

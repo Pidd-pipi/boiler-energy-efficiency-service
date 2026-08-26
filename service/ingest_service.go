@@ -107,10 +107,14 @@ func (s *Services) IngestRunData(traceID, boilerID string, in RunIngestInput) (*
 	result.Alerts = alerts
 
 	// 4) 运行时长累计（仅运行状态；排污周期依据）。
+	//    通过 MutateBoiler 在单次写锁内完成“读 -> 累加 -> 写回”，
+	//    避免并发上报时两次加锁之间的丢失更新（累计运行时长被覆盖）。
 	if b.Status == domain.BoilerStatusRunning {
-		b.AddRunSeconds(interval * 60.0)
-		b.TouchLastRun(ts)
-		if err := s.Store.UpdateBoiler(b); err != nil {
+		if _, err := s.Store.MutateBoiler(boilerID, func(cur *domain.Boiler) error {
+			cur.AddRunSeconds(interval * 60.0)
+			cur.TouchLastRun(ts)
+			return nil
+		}); err != nil {
 			return nil, err
 		}
 	}
