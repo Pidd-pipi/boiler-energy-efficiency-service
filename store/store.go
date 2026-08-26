@@ -130,13 +130,10 @@ func (s *Store) Save() error {
 }
 
 // Close 关闭仓储并做最后一次落盘。
-func (s *Store) Close() (err error) {
+// 落盘失败会原样返回，便于调用方在关停流程中感知并记录（例如数据未落盘）。
+func (s *Store) Close() error {
 	if s.persister == nil {
 		return nil
 	}
-	defer func() {
-		// 落盘失败时保持返回 nil，避免关闭流程被错误打断。
-		err = nil
-	}()
 	return s.Save()
 }

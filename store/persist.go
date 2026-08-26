@@ -73,7 +73,7 @@ func (p *JSONPersister) BackupPath() string {
 }
 
 // Write 原子写入快照：写临时文件 -> fsync -> rename -> fsync 目录。
-func (p *JSONPersister) Write(snap *snapshot) error {
+func (p *JSONPersister) Write(snap *snapshot) (err error) {
 	data, err := json.MarshalIndent(snap, "", "  ")
 	if err != nil {
 		return fmt.Errorf("序列化快照失败: %w", err)
@@ -83,23 +83,28 @@ func (p *JSONPersister) Write(snap *snapshot) error {
 	if err != nil {
 		return fmt.Errorf("打开快照临时文件失败: %w", err)
 	}
-	if _, err := f.Write(data); err != nil {
-		_ = f.Close()
-		_ = os.Remove(tmp)
+	// 统一收尾：成功路径也要关闭临时文件句柄，否则每次落盘都泄漏一个 fd，
+	// 批量写入跑久就会触发 "too many open files"。
+	defer func() {
+		if cerr := f.Close(); err == nil && cerr != nil {
+			err = fmt.Errorf("关闭快照临时文件失败: %w", cerr)
+		}
+		// 任何错误路径下都清理临时文件，避免残留。
+		if err != nil {
+			_ = os.Remove(tmp)
+		}
+	}()
+	if _, err = f.Write(data); err != nil {
 		return fmt.Errorf("写入快照临时文件失败: %w", err)
 	}
-	if err := f.Sync(); err != nil {
-		_ = f.Close()
-		_ = os.Remove(tmp)
+	if err = f.Sync(); err != nil {
 		return fmt.Errorf("同步快照临时文件失败: %w", err)
 	}
-	if err := os.Rename(tmp, p.Path()); err != nil {
-		_ = os.Remove(tmp)
+	if err = os.Rename(tmp, p.Path()); err != nil {
 		return fmt.Errorf("替换快照文件失败: %w", err)
 	}
 	// fsync 目录，保证 rename 结果在掉电后仍可见。
-	if err := p.syncDir(); err != nil {
-		_ = os.Remove(tmp)
+	if err = p.syncDir(); err != nil {
 		return fmt.Errorf("同步快照目录失败: %w", err)
 	}
 	return nil
@@ -111,6 +116,7 @@ func (p *JSONPersister) syncDir() error {
 	if err != nil {
 		return err
 	}
+	defer d.Close()
 	if err := d.Sync(); err != nil {
 		return err
 	}
@@ -143,6 +149,7 @@ func (p *JSONPersister) Read() (*snapshot, error) {
 	if err != nil {
 		return nil, fmt.Errorf("读取快照失败: %w", err)
 	}
+	defer f.Close()
 	data, err := io.ReadAll(f)
 	if err != nil {
 		return nil, fmt.Errorf("读取快照失败: %w", err)
