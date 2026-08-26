@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工业锅炉能效与运行监测服务</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:," />
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-title">锅炉能效监测</div>
+        <div class="brand-sub">Boiler Energy Efficiency</div>
+      </div>
+      <nav class="nav" id="nav">
+        <a href="/" data-link class="nav-item">锅炉房总览</a>
+        <a href="/diagnosis" data-link class="nav-item">燃烧工况</a>
+        <a href="/alerts" data-link class="nav-item">运行告警</a>
+        <a href="/blowdown" data-link class="nav-item">排污管理</a>
+        <a href="/reports" data-link class="nav-item">运行日报</a>
+        <a href="/audit" data-link class="nav-item">审计日志</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div id="conn-status" class="conn-status">--</div>
+      </div>
+    </aside>
+    <main id="main" class="main">
+      <div class="loading">加载中…</div>
+    </main>
+  </div>
+  <div id="toast-container"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
