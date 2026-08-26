@@ -46,11 +46,11 @@ func (s *Services) ListBoilers() ([]*domain.Boiler, error) {
 func (s *Services) Transition(traceID, boilerID string, target domain.BoilerStatus, operator string) (*domain.Boiler, error) {
 	b, err := s.Store.GetBoiler(boilerID)
 	if err != nil {
-		return nil, fmt.Errorf("获取锅炉失败: %v", err)
+		return nil, fmt.Errorf("获取锅炉失败: %w", err)
 	}
 	from := b.Status
 	if err := b.TransitionTo(target, s.now()); err != nil {
-		return nil, fmt.Errorf("状态迁移失败: %v", err)
+		return nil, fmt.Errorf("状态迁移失败: %w", err)
 	}
 	if err := s.Store.UpdateBoiler(b); err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (s *Services) Transition(traceID, boilerID string, target domain.BoilerStat
 func (s *Services) AllowedTargets(id string) ([]domain.BoilerStatus, error) {
 	b, err := s.Store.GetBoiler(id)
 	if err != nil {
-		return nil, fmt.Errorf("查询锅炉迁移目标失败: %v", err)
+		return nil, fmt.Errorf("查询锅炉迁移目标失败: %w", err)
 	}
 	allowed := domain.AllowedTransitions()[b.Status]
 	return allowed, nil

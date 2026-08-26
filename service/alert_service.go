@@ -17,7 +17,7 @@ func (s *Services) ListAlerts(filter store.AlertFilter) ([]*domain.RunAlert, err
 func (s *Services) AckAlert(traceID, alertID, operator, note string) (*domain.RunAlert, error) {
 	a, err := s.Store.GetAlert(alertID)
 	if err != nil {
-		return nil, fmt.Errorf("查询告警失败: %v", err)
+		return nil, fmt.Errorf("查询告警失败: %w", err)
 	}
 	if err := a.Acknowledge(operator, note, s.now()); err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (s *Services) AckAlert(traceID, alertID, operator, note string) (*domain.Ru
 func (s *Services) EscalateAlert(traceID, alertID, operator string) (*domain.RunAlert, error) {
 	a, err := s.Store.GetAlert(alertID)
 	if err != nil {
-		return nil, fmt.Errorf("查询告警失败: %v", err)
+		return nil, fmt.Errorf("查询告警失败: %w", err)
 	}
 	if err := a.Escalate(s.now()); err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (s *Services) EscalateAlert(traceID, alertID, operator string) (*domain.Run
 func (s *Services) ResolveAlert(traceID, alertID, operator, note string) (*domain.RunAlert, error) {
 	a, err := s.Store.GetAlert(alertID)
 	if err != nil {
-		return nil, fmt.Errorf("查询告警失败: %v", err)
+		return nil, fmt.Errorf("查询告警失败: %w", err)
 	}
 	if err := a.Resolve(operator, note, s.now()); err != nil {
 		return nil, err
