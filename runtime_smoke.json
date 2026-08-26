@@ -1,0 +1,16 @@
+{
+  "mode": "service",
+  "start": "go run .",
+  "workdir": ".",
+  "env": {
+    "PORT": "18080",
+    "DATA_DIR": "/tmp/bess_smoke_data"
+  },
+  "ready_url": "http://127.0.0.1:18080/healthz",
+  "ready_status": [
+    200,
+    204
+  ],
+  "startup_timeout": 30,
+  "project_intro": "基于 Go 实现的工业锅炉能效 Web 项目（全栈 Web 应用），一款后端服务，完成锅炉运行数据采集、能效指标计算、燃烧工况诊断、排污管理提示与运行日报生成。"
+}
